@@ -8,5 +8,3 @@ var Model_1 = require("./decorators/Model");
 exports.Model = Model_1.Model;
 var Field_1 = require("./decorators/Field");
 exports.Field = Field_1.Field;
-var getDefaultInstance_1 = require("./getDefaultInstance");
-exports.getDefaultInstance = getDefaultInstance_1.getDefaultInstance;

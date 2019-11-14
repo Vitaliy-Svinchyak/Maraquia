@@ -1,7 +1,5 @@
 import { CollectionAggregationOptions, FilterQuery, ObjectId } from 'mongodb';
 import { isSingular } from 'pluralize';
-import * as prettyFormat from 'pretty-format';
-import { getDefaultInstance } from './getDefaultInstance';
 import { IFindOptions, Maraquia } from './Maraquia';
 
 export interface IFieldSchema {
@@ -48,7 +46,7 @@ export class BaseModel {
 	}
 
 	static async exists<T = any>(query: FilterQuery<T>): Promise<boolean> {
-		return (this._m || (await getDefaultInstance())).exists(this, query);
+		return this._m.exists(this, query);
 	}
 
 	static async find<T extends BaseModel>(
@@ -56,7 +54,7 @@ export class BaseModel {
 		resolvedFields?: Array<keyof T> | null,
 		options?: IFindOptions
 	): Promise<Array<T>> {
-		return (this._m || (await getDefaultInstance())).find<T>(
+		return this._m.find<T>(
 			this,
 			query,
 			resolvedFields,
@@ -68,14 +66,14 @@ export class BaseModel {
 		query?: FilterQuery<T> | null,
 		resolvedFields?: Array<keyof T>
 	): Promise<T | null> {
-		return (this._m || (await getDefaultInstance())).findOne<T>(this, query, resolvedFields);
+		return this._m.findOne<T>(this, query, resolvedFields);
 	}
 
 	static async aggregate<T extends BaseModel>(
 		pipeline?: Array<Object>,
 		options?: CollectionAggregationOptions
 	): Promise<Array<T>> {
-		return (this._m || (await getDefaultInstance())).aggregate<T>(this, pipeline, options);
+		return this._m.aggregate<T>(this, pipeline, options);
 	}
 
 	m: Maraquia;
@@ -266,7 +264,7 @@ export class BaseModel {
 			return value;
 		}
 
-		let m = this.m || (this.constructor as typeof BaseModel)._m || (await getDefaultInstance());
+		let m = this.m || (this.constructor as typeof BaseModel)._m;
 		let valuePromise: Promise<T | null> = Array.isArray(value)
 			? m.db
 					.collection(collectionName!)
@@ -405,7 +403,7 @@ export class BaseModel {
 
 			if (result === false) {
 				throw new TypeError(
-					`Not valid value "${prettyFormat(value)}" for field "${fieldName}"`
+					`Not valid value "${value}" for field "${fieldName}"`
 				);
 			}
 			if (typeof result == 'string') {
@@ -425,16 +423,14 @@ export class BaseModel {
 	async save(): Promise<boolean> {
 		return (
 			this.m ||
-			(this.constructor as typeof BaseModel)._m ||
-			(await getDefaultInstance())
+			(this.constructor as typeof BaseModel)._m
 		).save(this);
 	}
 
 	async remove(): Promise<boolean> {
 		return (
 			this.m ||
-			(this.constructor as typeof BaseModel)._m ||
-			(await getDefaultInstance())
+			(this.constructor as typeof BaseModel)._m
 		).remove(this);
 	}
 
@@ -490,13 +486,5 @@ export class BaseModel {
 		}
 
 		return obj;
-	}
-
-	inspectData(): string {
-		return prettyFormat(this.toObject());
-	}
-
-	printData() {
-		console.log(this.inspectData());
 	}
 }

@@ -50,6 +50,4 @@ export declare class BaseModel {
     beforeRemove: (() => Promise<any> | void) | undefined;
     afterRemove: (() => Promise<any> | void) | undefined;
     toObject(fields?: Record<string, any>): Object;
-    inspectData(): string;
-    printData(): void;
 }

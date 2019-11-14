@@ -2,8 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongodb_1 = require("mongodb");
 const pluralize_1 = require("pluralize");
-const prettyFormat = require("pretty-format");
-const getDefaultInstance_1 = require("./getDefaultInstance");
 exports.KEY_REFERENCE_FIELDS = Symbol('Maraquia/BaseModel[referenceFields]');
 exports.KEY_DB_COLLECTION_INITIALIZED = Symbol('Maraquia/BaseModel[collectionInitialized]');
 exports.KEY_DATA = Symbol('Maraquia/BaseModel[data]');
@@ -124,16 +122,16 @@ class BaseModel {
         return this;
     }
     static async exists(query) {
-        return (this._m || (await getDefaultInstance_1.getDefaultInstance())).exists(this, query);
+        return this._m.exists(this, query);
     }
     static async find(query, resolvedFields, options) {
-        return (this._m || (await getDefaultInstance_1.getDefaultInstance())).find(this, query, resolvedFields, options);
+        return this._m.find(this, query, resolvedFields, options);
     }
     static async findOne(query, resolvedFields) {
-        return (this._m || (await getDefaultInstance_1.getDefaultInstance())).findOne(this, query, resolvedFields);
+        return this._m.findOne(this, query, resolvedFields);
     }
     static async aggregate(pipeline, options) {
-        return (this._m || (await getDefaultInstance_1.getDefaultInstance())).aggregate(this, pipeline, options);
+        return this._m.aggregate(this, pipeline, options);
     }
     use(m) {
         this.m = m;
@@ -156,7 +154,7 @@ class BaseModel {
         if (value instanceof Promise) {
             return value;
         }
-        let m = this.m || this.constructor._m || (await getDefaultInstance_1.getDefaultInstance());
+        let m = this.m || this.constructor._m;
         let valuePromise = Array.isArray(value)
             ? m.db
                 .collection(collectionName)
@@ -249,7 +247,7 @@ class BaseModel {
                 ? fieldSchema.validate(value)
                 : fieldSchema.validate.validate(value);
             if (result === false) {
-                throw new TypeError(`Not valid value "${prettyFormat(value)}" for field "${fieldName}"`);
+                throw new TypeError(`Not valid value "${value}" for field "${fieldName}"`);
             }
             if (typeof result == 'string') {
                 throw new TypeError(result);
@@ -265,13 +263,11 @@ class BaseModel {
     }
     async save() {
         return (this.m ||
-            this.constructor._m ||
-            (await getDefaultInstance_1.getDefaultInstance())).save(this);
+            this.constructor._m).save(this);
     }
     async remove() {
         return (this.m ||
-            this.constructor._m ||
-            (await getDefaultInstance_1.getDefaultInstance())).remove(this);
+            this.constructor._m).remove(this);
     }
     toObject(fields) {
         let schema = this.constructor.$schema;
@@ -310,12 +306,6 @@ class BaseModel {
             }
         }
         return obj;
-    }
-    inspectData() {
-        return prettyFormat(this.toObject());
-    }
-    printData() {
-        console.log(this.inspectData());
     }
 }
 exports.BaseModel = BaseModel;
